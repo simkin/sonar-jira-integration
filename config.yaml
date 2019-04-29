@@ -1,0 +1,8 @@
+sonar_user: 'sonar_user'
+sonar_pass: 'sonar_password'
+sonar_base_url: 'http://my-sonar.com.br'
+sonar_issue_type: 'VULNERABILITY'
+jira_user: 'jira_user'
+jira_pass: 'jira_password'
+jira_project: 'jira_project'
+jira_base_url: 'https://my-jira.com.br'
