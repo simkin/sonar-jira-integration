@@ -1,0 +1,4 @@
+requests
+pyyaml
+logger
+jira
