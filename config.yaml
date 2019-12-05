@@ -1,7 +1,7 @@
 sonar_user: 'sonar_user'
 sonar_pass: 'sonar_password'
 sonar_base_url: 'http://sonarqube.domain.com'
-sonar_issue_type: 'VULNERABILITY'
+sonar_issue_type: 'BUG'
 sonar_project: 'project_name'
 sonar_branch: 'branch_name'
 jira_user: 'jira_user'
