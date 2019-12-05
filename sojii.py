@@ -1,21 +1,8 @@
 #!/usr/bin/env python
 
-#
-#        ███████╗ ██████╗      ██╗██╗██╗
-#        ██╔════╝██╔═══██╗     ██║██║██║
-#        ███████╗██║   ██║     ██║██║██║
-#        ╚════██║██║   ██║██   ██║██║██║
-#        ███████║╚██████╔╝╚█████╔╝██║██║
-#        ╚══════╝ ╚═════╝  ╚════╝ ╚═╝╚═╝
-#          Sonar - Jira Integration 
-
-
-"""
-    Autor: Leonardo Molina
-    Script: Script de integração de issues do Sonar com Jira
-"""
-
 import requests
+from requests.auth import HTTPBasicAuth
+import json
 import yaml
 import base64
 import sys
@@ -27,6 +14,8 @@ try:
     sonar_user = yaml_params['sonar_user']
     sonar_pass = yaml_params['sonar_pass']
     sonar_base_url = yaml_params['sonar_base_url']
+    sonar_project = yaml_params['sonar_project']
+    sonar_branch = yaml_params['sonar_branch']
     jira_base_url = yaml_params['jira_base_url']
     sonar_issue_type = yaml_params['sonar_issue_type']
     jira_user = yaml_params['jira_user']
@@ -51,7 +40,7 @@ def main():
     for issue in issues:
         try:
             if create_jira_issue(issue):
-                assign_sonar_issue(issue['key'])
+                #assign_sonar_issue(issue['key'])
             pass
 
         except Exception as e:
@@ -62,7 +51,7 @@ def get_sonar_issues():
     issues = []
 
     try:
-        response = requests.get( sonar_base_url + '/api/issues/search?types=' + sonar_issue_type + '&statuses=OPEN,REOPENED,CONFIRMED&assigned=false' )
+        response = requests.get( sonar_base_url + '/api/issues/search?additionalFields=comments&types=' + sonar_issue_type + '&statuses=OPEN,REOPENED,CONFIRMED&componentKeys=' + sonar_project + '&branch=' + sonar_branch + ')
         data_json = response.json()
         
     except Exception as e:
@@ -93,7 +82,7 @@ def assign_sonar_issue(issue):
         headers = { "Authorization": ('Basic ' + credentials) }
         response = requests.post( sonar_base_url + '/api/issues/assign?issue='+issue+'&assignee='+sonar_user, headers=headers )
 
-        print('Codigo de assign da issue no Sonar: ' + str(response.status_code))
+        print('Response code SQ: ' + str(response.status_code))
         
     except Exception as e:
         logger(e)
@@ -104,59 +93,53 @@ def create_jira_issue(issue):
         jira = JIRA(server=jira_base_url, basic_auth=(jira_user, jira_pass))
 
         labels = issue['tags']
+        comments = issue['comments']
         labels.extend([issue['project']])
 
-        message = "Vulnerabilidade: " + issue['message'] + "\nLink: """ + sonar_base_url + '/issues?issues=' + issue['key']
-    
-        if 'project' in issue.keys():
-            message += "\nProjeto: " + issue['project']
-
-        if 'component' in issue.keys():
-            message += "\nComponente: " + issue['component']
-
-        if 'line' in issue.keys():
-            message += "\nLinha: """ + str(issue['line'])
+        description = "Triggering rule:\n" + issue['message'] + "\nLink: """ + sonar_base_url + '/issues?issues=' + issue['key']
 
         if 'author' in issue.keys():
-            message += "\nAutor: """ + issue['author']    
+            description += "\nAuthor: """ + issue['author']    
 
-        print('\n==================================\nCriando issue do sonar ' + issue['key'] + ' no Jira')
+        print('\n==================================\nCreating SQ issue ' + issue['key'] + ' in Jira')
 
         issue_dict = {
             "project": {'key': jira_project},
-            "summary": "[Sonar] - " + issue['message'],
-            "description": message,
-            "issuetype": {'name': 'Vulnerabilidade'},
+            "summary": "[SonarQube] - " + issue['component'],
+            "description": description,
+            "issuetype": {'name': 'Bug'},
             "priority" :  { 'value': get_prioridade(issue['severity']) },
-            "labels": labels
+            #"labels": labels
+            "labels": {'SonarQube': 'static-code-analysis'},
+            "customfield_12072": {"value":"Low"}
         }
 
         print(issue_dict) if debug_mode else 0
         new_issue = jira.create_issue(fields=issue_dict)
-        print(u'Issue ' + str(new_issue) + ' criada no Jira')
+        print(u'Issue ' + str(new_issue) + ' created in Jira')
             
         return True
 
     except Exception as e:
-        logger.error('Exception on create_jira_issue: '+ str(e) + '\nEssa issue não foi criada')
+        logger.error('Exception on create_jira_issue: '+ str(e) + '\n')
         return False
 
 
 def get_prioridade(severidade):
     if severidade == 'MINOR':
-        return 'Trivial'
+        return 'Major (P2)'
 
     elif severidade == 'MAJOR':
-        return 'Major'
+        return 'Major (P2)'
         
     if severidade == 'CRITICAL':
-        return 'Critical'
+        return 'Major (P2)'
 
     if severidade == 'BLOCKER':
-        return 'Blocker'
+        return 'Major (P2)'
 
     else:
-        return 'Minor'
+        return 'Major (P2)'
 
 
 if __name__ == '__main__':
