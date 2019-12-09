@@ -25,7 +25,7 @@ try:
 except Exception as e:
     logger.error(e)
 
-debug_mode = False
+debug_mode = True
 
 
 def main():
