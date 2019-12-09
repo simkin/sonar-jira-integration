@@ -40,7 +40,7 @@ def main():
     for issue in issues:
         try:
             if create_jira_issue(issue):
-                #assign_sonar_issue(issue['key'])
+                assign_sonar_issue(issue['key'])
             pass
 
         except Exception as e:
@@ -51,7 +51,7 @@ def get_sonar_issues():
     issues = []
 
     try:
-        response = requests.get( sonar_base_url + '/api/issues/search?additionalFields=comments&types=' + sonar_issue_type + '&statuses=OPEN,REOPENED,CONFIRMED&componentKeys=' + sonar_project + '&branch=' + sonar_branch + ')
+        response = requests.get( sonar_base_url + '/api/issues/search?additionalFields=comments&types=' + sonar_issue_type + '&statuses=OPEN,REOPENED,CONFIRMED&componentKeys=' + sonar_project + '&branch=' + sonar_branch + ' )
         data_json = response.json()
         
     except Exception as e:
