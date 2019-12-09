@@ -51,7 +51,7 @@ def get_sonar_issues():
     issues = []
 
     try:
-        response = requests.get( sonar_base_url + '/api/issues/search?additionalFields=comments&types=' + sonar_issue_type + '&statuses=OPEN,REOPENED,CONFIRMED&componentKeys=' + sonar_project + '&branch=' + sonar_branch + ' )
+        response = requests.get( sonar_base_url + '/api/issues/search?additionalFields=comments&types=' + sonar_issue_type + '&statuses=OPEN,REOPENED,CONFIRMED&componentKeys=' + sonar_project + '&branch=' + sonar_branch + '&statuses=OPEN,REOPENED,CONFIRMED' )
         data_json = response.json()
         
     except Exception as e:
