@@ -51,6 +51,8 @@ def get_sonar_issues():
     issues = []
 
     try:
+        credentials = str(base64.b64encode(bytes(sonar_user + ":"  + sonar_pass, 'utf-8'))).replace('b\'','').replace('\'','')
+        headers = { "Authorization": ('Basic ' + credentials) }        
         response = requests.get( sonar_base_url + '/api/issues/search?additionalFields=comments&types=' + sonar_issue_type + sonar_project + '&branch=' + sonar_branch + '&statuses=OPEN,REOPENED,CONFIRMED' )
         data_json = response.json()
         
