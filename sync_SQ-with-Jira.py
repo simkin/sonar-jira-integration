@@ -10,7 +10,7 @@ import logger
 from jira import JIRA
 
 try:
-    yaml_params = yaml.load(open('.\\config.yaml', 'r', encoding="utf-8"), Loader=yaml.SafeLoader)
+    yaml_params = yaml.load(open('config.yaml', 'r', encoding="utf-8"), Loader=yaml.SafeLoader)
     sonar_user = yaml_params['sonar_user']
     sonar_pass = yaml_params['sonar_pass']
     sonar_base_url = yaml_params['sonar_base_url']
