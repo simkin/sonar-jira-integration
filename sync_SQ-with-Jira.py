@@ -6,7 +6,6 @@ import json
 import yaml
 import base64
 import sys
-import logger
 from jira import JIRA
 
 try:
@@ -21,9 +20,10 @@ try:
     jira_user = yaml_params['jira_user']
     jira_pass = yaml_params['jira_pass']
     jira_project = yaml_params['jira_project']
+    sonar_base_url = sonar_base_url.replace('//', f'//{sonar_user}:{sonar_pass}@')
 
 except Exception as e:
-    logger.error(e)
+    print(e)
 
 debug_mode = True
 
@@ -36,6 +36,7 @@ def main():
             debug_mode = True
 
     issues = get_sonar_issues()
+    return
 
     for issue in issues:
         try:
@@ -44,50 +45,43 @@ def main():
             pass
 
         except Exception as e:
-            logger.error(e)
+            print(e)
 
+
+def get_jira_link_in_comments(comments):
+    for comment in comments:
+        if jira_base_url in comment['markdown']:
+            text = comment['markdown']
+            lines = text.split()
+            for line in lines:
+                if line.startswith(jira_base_url):
+                    return line
+    return False
 
 def get_sonar_issues():
     issues = []
 
     try:
         credentials = str(base64.b64encode(bytes(sonar_user + ":"  + sonar_pass, 'utf-8'))).replace('b\'','').replace('\'','')
-        headers = { "Authorization": ('Basic ' + credentials) }        
-        response = requests.get( sonar_base_url + '/api/issues/search?additionalFields=comments&types=' + sonar_issue_type + sonar_project + '&branch=' + sonar_branch + '&statuses=OPEN,REOPENED,CONFIRMED' )
+        headers = { "Authorization": ('Basic ' + credentials) }
+        response = requests.get( sonar_base_url + '/api/issues/search?additionalFields=comments&types=' + sonar_issue_type + '&project=' + sonar_project + '&branch=' + sonar_branch + '&statuses=OPEN,REOPENED,CONFIRMED' )
+        print("XXX")
         data_json = response.json()
-        
     except Exception as e:
-        logger.error(e)
+        print(e)
 
     for issue in data_json['issues']:
-
-        if debug_mode:
-            print('===========================================\nIssue ' + issue['key'] + ':\n')
-
-            for key, val in issue.items():
-                try:
-                    print(key + ' : ' + val)
-
-                except Exception as e:
-                    print(key + ':')
-                    print(val)
-                    pass
-
+        jira_link = get_jira_link_in_comments(issue['comments'])
+        print(issue['key'], jira_link if jira_link else 'to be created', issue['status'])
+        if jira_link:
+            # TODO / cleanup: check if the link
+            pass
+        else:
+            # TODO/ create a ticket in JIRA
+            pass
         issues.append(issue)
 
     return issues
-
-
-def assign_sonar_issue(issue):
-    try:
-        credentials = str(base64.b64encode(bytes(sonar_user + ":"  + sonar_pass, 'utf-8'))).replace('b\'','').replace('\'','')
-        headers = { "Authorization": ('Basic ' + credentials) }
-        response = requests.post( sonar_base_url + '/api/issues/assign?issue='+issue+'&assignee='+sonar_user, headers=headers )
-
-        print('Response code SQ: ' + str(response.status_code))
-        
-    except Exception as e:
-        logger(e)
 
 
 def create_jira_issue(issue):
@@ -123,7 +117,7 @@ def create_jira_issue(issue):
         return True
 
     except Exception as e:
-        logger.error('Exception on create_jira_issue: '+ str(e) + '\n')
+        print('Exception on create_jira_issue: '+ str(e) + '\n')
         return False
 
 
