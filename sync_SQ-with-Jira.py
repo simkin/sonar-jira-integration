@@ -24,30 +24,11 @@ try:
     jira_project = yaml_params['jira_project']
     sonar_base_url = sonar_base_url.replace('//', f'//{sonar_user}:{sonar_pass}@')
 
-except Exception as e:
-    print(e)
-
-debug_mode = True
-
 
 def main():
-    global debug_mode
-
-    for arg in sys.argv[1:]:
-        if arg == '-d':
-            debug_mode = True
 
     issues = get_sonar_issues()
     return
-
-    for issue in issues:
-        try:
-            if create_jira_issue(issue):
-                assign_sonar_issue(issue['key'])
-            pass
-
-        except Exception as e:
-            print(e)
 
 
 def get_jira_link_in_comments(comments):
